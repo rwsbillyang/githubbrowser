@@ -1,3 +1,7 @@
+.idea/modules.xml
+.idea/navEditor.xml
+.DS_Store
+
 # Built application files
 *.apk
 *.ap_

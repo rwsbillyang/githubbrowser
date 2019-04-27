@@ -1,0 +1,110 @@
+/*
+ * Copyright (C) 2017 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.github.rwsbillyang.githubbrowser.ui.repo
+
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import androidx.lifecycle.Observer
+import androidx.navigation.fragment.FragmentNavigatorExtras
+import androidx.navigation.fragment.findNavController
+import androidx.transition.TransitionInflater
+import com.github.rwsbillyang.appbase.apiresponse.Resource
+import com.github.rwsbillyang.appbase.util.autoCleared
+import com.github.rwsbillyang.appbase.util.setVisible
+import com.github.rwsbillyang.githubbrowser.R
+import com.github.rwsbillyang.githubbrowser.model.vo.Contributor
+import com.github.rwsbillyang.githubbrowser.model.vo.Repo
+import com.github.rwsbillyang.githubbrowser.ui.base.LoadingFragment
+import kotlinx.android.synthetic.main.github_repo_fragment.*
+import org.koin.androidx.viewmodel.ext.android.viewModel
+
+/**
+ * The UI Controller for displaying a Github Repo's information with its contributors.
+ */
+
+class RepoFragment : LoadingFragment() {
+    val repoViewModel: RepoViewModel by viewModel()
+
+    //private val params by navArgs<RepoFragmentArgs>()
+    private var adapter by autoCleared<ContributorAdapter>()
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        sharedElementReturnTransition = TransitionInflater.from(context).inflateTransition(R.transition.move)
+        return inflater.inflate(R.layout.github_repo_fragment, container, false)
+    }
+    override fun retry(){
+        repoViewModel.retry()
+    }
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        //如果RepoId变化，将引起Repo的装载，从而contributors中的值会变化，此处代码得到执行
+        repoViewModel.repo.observe(viewLifecycleOwner,Observer<Resource<Repo>>{
+            renderRepo(it)
+        })
+
+        //this.adapter = ContributorAdapter()
+        this.adapter = ContributorAdapter{
+                contributor, imageView ->
+            val extras = FragmentNavigatorExtras(
+                imageView to contributor.login
+            )
+            findNavController().navigate(
+                RepoFragmentDirections.showUser(contributor.login, contributor.avatarUrl),
+                extras
+            )
+        }
+
+        contributor_list.adapter = adapter
+        //如果RepoId变化，将引起List<Contributor>的装载，从而contributors中的值会变化，此处代码得到执行
+        repoViewModel.contributors.observe(viewLifecycleOwner, Observer<Resource<List<Contributor>>> {
+            updateLoading(it)
+            if (it?.data != null) {
+                adapter.submitList(it.data)
+            }
+        })
+
+        val params = RepoFragmentArgs.fromBundle(arguments!!)
+        repoViewModel.setId(params.owner, params.name)
+
+        postponeEnterTransition()
+        contributor_list.viewTreeObserver
+            .addOnPreDrawListener {
+                startPostponedEnterTransition()
+                true
+            }
+
+    }
+
+    private fun renderRepo(resource:Resource<Repo>?)
+    {
+        val visible = resource?.data == null
+
+        name.setVisible(!visible)
+        name.text = resources.getString(R.string.repo_full_name,
+            resource?.data?.owner?.login,resource?.data?.name)
+
+        description.setVisible(!visible)
+        description.text = resource?.data?.description
+
+        updateLoading(resource)
+    }
+
+
+}
