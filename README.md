@@ -1,12 +1,33 @@
-基于https://github.com/googlesamples/android-architecture-components/tree/master/GithubBrowserSample
 
-主要做了以下修改
 
-### 依赖注入由Dagger改为Koin
+### 技术栈
 
-使用起来更加简单明了；
+- MVVM架构 涉及到Lifecycle/ViewModel/LiveData等android架构核心组件；
+- Navigation  单Activity下的多Fragment，跟前端的单页应用SPA是不是有点类似？
+- AndroidX 全新支持库；
+- View Binding  使用Kotlin的Android扩展实现，DataBinding让xml中夹杂着数据，还需要导入冗长的包名，经常会出拼写错误；
+- Retrofit2/OkHttp3 网络请求，提供了多种拦截器，支持多站点配置 ；
+- Kotlin 主要是lambda、DSL、扩展、let/run等库函数， 大大缩减缩累赘代码；
+- Kotlin Coroutine  用协程代替多线程，更简便；
+- Room 数据库存储，可更换成NoSQL数据库；
+- Koin 依赖注入，使用更方便，不再使用Dagger；
+- Glide 加载图片；
 
-### Respository层使用DSL进行配置
+
+
+### 主要修改更新
+
+基于
+https://github.com/googlesamples/android-architecture-components/tree/master/GithubBrowserSample
+
+做了以下几方面修改：
+
+
+#### 依赖注入由Dagger改为Koin
+
+使用起来更加简单。
+
+#### Respository层使用DSL进行配置
 
 不再使用原来的继承方式，改用DSL实现，更加简洁优雅，示例如下：
 ```
@@ -21,17 +42,17 @@
     }
 ```
 
-fromLocal 是从本地加载数据
+fromLocal 从本地加载数据
 
-fromRemote 是从远程加载数据
+fromRemote 从远程加载数据
 
 converter 将远程加载的数据变换成本地需要的数据
 
-save是保存到本地
+save 网络请求的数据保存到本地
 
-isForceRefresh 意味着是否强制刷新
+isForceRefresh 意是否强制刷新
 
-onFetchFail 若从远程取得的数据出错的回调
+onFetchFail 从远程取得的数据出错时的回调
 
 
 如果远端返回的数据需要变换，示例如下：
@@ -70,7 +91,7 @@ processResponse是远程api调用响应的结果进行变换。
 其中 Retrofit的接口类直接返回Call<RepoSearchResponse>, DB接口直接返回List<Repo>，liveData中保存的值的类型是Resource<List<Repo>>；
 
 
-### 网络请求改由利用Kotlin的coroutine实现
+#### 网络请求改由利用Kotlin的coroutine实现
 
 协程依赖kotlin1.3版本。
 
@@ -97,12 +118,13 @@ processResponse是远程api调用响应的结果进行变换。
     }
 ```
 
-### 添加了interceptor机制
+#### 添加了interceptor机制
 
-可以优先直接拦截处理来自网络的请求结果，处理完若返回true，则不再发送更新给前端UI所观察的Resource<T>所在liveData
+可以优先直接拦截处理来自网络的请求结果，处理完若返回true，则不再发送更新给前端UI所观察的Resource<T>所在liveData。
+主要用于某些业务逻辑错误的统一处理，而无需影响大上层UI。
 
 
-### 使用View Binding(Kotlin Android Extensions)替换掉DataBinding
+#### 使用View Binding(Kotlin Android Extensions)替换掉DataBinding
 
 在Activity或Fragment中直接操作UI控件，不再在xml中夹杂着绑定的数据变量。
 
@@ -122,6 +144,18 @@ searchViewModel.loadMoreStatus.observe(viewLifecycleOwner,Observer{updateLoading
 
 注意：xml中的其它控件，配置好初始状态，然后在onViewCreated向上面配置好数据监察响应即可。
 
-### 其它
+#### 其它
 - 来自网络数据具有最高优先级，本地存储只作为备用；
 - 调整了部分依赖库版本，调整了目录结构，并将一些可作为公共部分的代码提取到appbase中；
+
+
+### 特别鸣谢：
+https://github.com/googlesamples/android-architecture-components/tree/master/GithubBrowserSample
+
+改写过程中还参考了下列项目，一并感谢：
+
+https://github.com/ditclear/PaoNet
+
+https://github.com/githubwing/GankClient-Kotlin
+
+https://github.com/shkschneider/android_viewmodel_livedata_coroutines/

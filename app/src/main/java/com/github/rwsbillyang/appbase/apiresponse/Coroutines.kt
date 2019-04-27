@@ -16,8 +16,6 @@ object Coroutines {
         }
 
 
-
-
     fun <T: Any> ioThenMain(work: suspend (() -> T), callback: ((T) -> Unit)? = null): Job =
             CoroutineScope(Dispatchers.Main).launch {
                 val data = CoroutineScope(Dispatchers.IO).async {
