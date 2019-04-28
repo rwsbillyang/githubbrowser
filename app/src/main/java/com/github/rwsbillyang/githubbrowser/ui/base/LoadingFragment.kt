@@ -20,7 +20,7 @@ open class LoadingFragment : Fragment() {
     }
     protected open fun retry(){}
 
-    protected open fun updateLoading(resource: Resource<*>?)
+    protected open fun renderLoading(resource: Resource<*>?)
     {
         Logger.i("updateLoading")
 

@@ -50,9 +50,20 @@ class UserFragment : LoadingFragment() {
     private var adapter by autoCleared<RepoListAdapter>()
     private var handler = Handler(Looper.getMainLooper())
 
+    val imageRequestListener = object: RequestListener<Drawable> {
+        override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>?, isFirstResource: Boolean): Boolean {
+            startPostponedEnterTransition()
+            return false
+        }
+
+        override fun onResourceReady(resource: Drawable?, model: Any?, target: Target<Drawable>?, dataSource: DataSource?, isFirstResource: Boolean): Boolean {
+            startPostponedEnterTransition()
+            return false
+        }
+    }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         sharedElementReturnTransition = TransitionInflater.from(context).inflateTransition(R.transition.move)
-        // When the image is loaded, set the image request listener to start the transaction
 
         // Animation Watchdog - Make sure we don't wait longer than a second for the Glide image
         handler.postDelayed(1000) {
@@ -67,42 +78,33 @@ class UserFragment : LoadingFragment() {
         userViewModel.retry()
     }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        userViewModel.user.observe(viewLifecycleOwner,Observer<Resource<User>>{
-            renderUser(it)
-        })
-
-        val rvAdapter = RepoListAdapter(showFullName = false) { repo ->
+        adapter = RepoListAdapter(showFullName = false) { repo ->
             findNavController().navigate(UserFragmentDirections.showRepo(repo.owner.login, repo.name))
         }
-        this.adapter = rvAdapter
         repo_list.adapter = adapter
-        userViewModel.repositories.observe(viewLifecycleOwner, Observer<Resource<List<Repo>>> {
-            updateLoading(it)
-            adapter.submitList(it?.data)
-        })
 
-        userViewModel.setLogin(params.login)
+        userViewModel.apply {
+            user.observe(viewLifecycleOwner,Observer<Resource<User>>{
+                renderLoading(it)
+                renderUser(it)
+            })
+
+            repositories.observe(viewLifecycleOwner, Observer<Resource<List<Repo>>> {
+                renderLoading(it)
+                adapter.submitList(it?.data)
+            })
+
+            setLogin(params.login)
+        }
+
     }
 
     private fun renderUser(resource: Resource<User>)
     {
-        val imageRequestListener = object: RequestListener<Drawable> {
-            override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>?, isFirstResource: Boolean): Boolean {
-                startPostponedEnterTransition()
-                return false
-            }
-
-            override fun onResourceReady(resource: Drawable?, model: Any?, target: Target<Drawable>?, dataSource: DataSource?, isFirstResource: Boolean): Boolean {
-                startPostponedEnterTransition()
-                return false
-            }
-        }
         avatar.loadImg(resource.data?.avatarUrl,null,imageRequestListener)
 
         name.setVisible(resource.data != null)
         name.text = resource.data?.name ?: resource.data?.login
-
-        updateLoading(resource)
     }
 
 }

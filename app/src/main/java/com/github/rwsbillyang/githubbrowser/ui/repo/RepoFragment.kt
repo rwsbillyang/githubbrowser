@@ -45,43 +45,38 @@ class RepoFragment : LoadingFragment() {
     private var adapter by autoCleared<ContributorAdapter>()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        sharedElementReturnTransition = TransitionInflater.from(context).inflateTransition(R.transition.move)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            sharedElementReturnTransition = TransitionInflater.from(context).inflateTransition(R.transition.move)
+        }
         return inflater.inflate(R.layout.github_repo_fragment, container, false)
     }
     override fun retry(){
         repoViewModel.retry()
     }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        //如果RepoId变化，将引起Repo的装载，从而contributors中的值会变化，此处代码得到执行
-        repoViewModel.repo.observe(viewLifecycleOwner,Observer<Resource<Repo>>{
-            renderRepo(it)
-        })
-
-        //this.adapter = ContributorAdapter()
-        this.adapter = ContributorAdapter{
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP){
+            this.adapter = ContributorAdapter{
+                    contributor, imageView ->
+                val extras = FragmentNavigatorExtras(
+                    imageView to contributor.login
+                )
+                findNavController().navigate(
+                    RepoFragmentDirections.showUser(contributor.login, contributor.avatarUrl),
+                    extras
+                )
+            }
+        }else
+        {
+            this.adapter = ContributorAdapter{
                 contributor, imageView ->
-            val extras = FragmentNavigatorExtras(
-                imageView to contributor.login
-            )
-            findNavController().navigate(
-                RepoFragmentDirections.showUser(contributor.login, contributor.avatarUrl),
-                extras
-            )
+            findNavController().navigate(RepoFragmentDirections.showUser(contributor.login, contributor.avatarUrl))
+            }
         }
 
         contributor_list.adapter = adapter
-        //如果RepoId变化，将引起List<Contributor>的装载，从而contributors中的值会变化，此处代码得到执行
-        repoViewModel.contributors.observe(viewLifecycleOwner, Observer<Resource<List<Contributor>>> {
-            updateLoading(it)
-            if (it?.data != null) {
-                adapter.submitList(it.data)
-            }
-        })
-
-        val params = RepoFragmentArgs.fromBundle(arguments!!)
-        repoViewModel.setId(params.owner, params.name)
 
         postponeEnterTransition()
         contributor_list.viewTreeObserver
@@ -90,6 +85,25 @@ class RepoFragment : LoadingFragment() {
                 true
             }
 
+
+        val params = RepoFragmentArgs.fromBundle(arguments!!)
+
+
+        repoViewModel.apply {
+            //如果RepoId变化，将引起Repo的装载，从而contributors中的值会变化，此处代码得到执行
+            repo.observe(viewLifecycleOwner,Observer<Resource<Repo>>{
+                renderLoading(it)
+                renderRepo(it)
+            })
+
+            //如果RepoId变化，将引起List<Contributor>的装载，从而contributors中的值会变化，此处代码得到执行
+            contributors.observe(viewLifecycleOwner, Observer<Resource<List<Contributor>>> {
+                renderLoading(it)
+                it?.data?.run { adapter.submitList(this) }
+            })
+
+            setId(params.owner, params.name)
+        }
     }
 
     private fun renderRepo(resource:Resource<Repo>?)
@@ -102,8 +116,6 @@ class RepoFragment : LoadingFragment() {
 
         description.setVisible(!visible)
         description.text = resource?.data?.description
-
-        updateLoading(resource)
     }
 
 

@@ -29,12 +29,14 @@ import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.github.rwsbillyang.appbase.apiresponse.Resource
 import com.github.rwsbillyang.appbase.apiresponse.Status
 import com.github.rwsbillyang.appbase.util.ToastType
 import com.github.rwsbillyang.appbase.util.autoCleared
 import com.github.rwsbillyang.appbase.util.setVisible
 import com.github.rwsbillyang.appbase.util.toast
 import com.github.rwsbillyang.githubbrowser.R
+import com.github.rwsbillyang.githubbrowser.model.vo.Repo
 import com.github.rwsbillyang.githubbrowser.ui.base.LoadingFragment
 import com.github.rwsbillyang.githubbrowser.ui.user.RepoListAdapter
 import com.google.android.material.snackbar.Snackbar
@@ -91,15 +93,13 @@ class SearchFragment : LoadingFragment() {
     }
 
     private fun initRecyclerView() {
-        val rvAdapter = RepoListAdapter(
-            showFullName = true
-        ) { repo ->
+        adapter = RepoListAdapter(showFullName = true) { repo ->
             findNavController().navigate(
                 SearchFragmentDirections.showRepo(repo.owner.login, repo.name)
             )
         }
 
-        repo_list.adapter = rvAdapter
+        repo_list.adapter = adapter
         repo_list.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 val layoutManager = recyclerView.layoutManager as LinearLayoutManager
@@ -110,29 +110,11 @@ class SearchFragment : LoadingFragment() {
             }
         })
 
-        adapter = rvAdapter
-        searchViewModel.results.observe(viewLifecycleOwner, Observer { result ->
-            updateLoading(result)
+        searchViewModel.apply {
+            results.observe(viewLifecycleOwner, Observer { renderResult(it)})
+            loadMoreStatus.observe(viewLifecycleOwner,Observer{ renderLoadingMore(it)} )
+        }
 
-            val noResult = result?.status == Status.OK && result.data?.size == 0
-            if(noResult)
-            {
-                no_results_text.text = resources.getString(
-                    R.string.empty_search_result,
-                    searchViewModel.query.value
-                )
-                no_results_text.setVisible(noResult)
-                toast(no_results_text.text,3,ToastType.NORMAL)
-            }
-            if(result.status == Status.LOADING){
-                adapter.setList(result?.data)
-            }else{
-                adapter.submitList(result?.data)
-            }
-
-        })
-
-        searchViewModel.loadMoreStatus.observe(viewLifecycleOwner,Observer{updateLoadingMore(it)})
     }
 
     private fun dismissKeyboard(windowToken: IBinder) {
@@ -140,8 +122,28 @@ class SearchFragment : LoadingFragment() {
         imm?.hideSoftInputFromWindow(windowToken, 0)
     }
 
+    private  fun renderResult(result: Resource<List<Repo>>)
+    {
+        renderLoading(result)
 
-    private fun updateLoadingMore(loadingMore: SearchViewModel.LoadMoreState)
+        val noResult = result?.status == Status.OK && result.data?.size == 0
+        if(noResult)
+        {
+            no_results_text.text = resources.getString(
+                R.string.empty_search_result,
+                searchViewModel.query.value
+            )
+            no_results_text.setVisible(noResult)
+            toast(no_results_text.text,3,ToastType.NORMAL)
+        }
+        if(result.status == Status.LOADING){
+            adapter.setList(result?.data)
+        }else{
+            adapter.submitList(result?.data)
+        }
+    }
+
+    private fun renderLoadingMore(loadingMore: SearchViewModel.LoadMoreState)
     {
         if (loadingMore == null) {
             load_more_bar.setVisible(false)
