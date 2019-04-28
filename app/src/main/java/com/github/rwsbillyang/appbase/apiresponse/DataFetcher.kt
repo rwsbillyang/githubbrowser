@@ -1,6 +1,7 @@
 package com.github.rwsbillyang.appbase.apiresponse
 
 import androidx.lifecycle.*
+import com.github.rwsbillyang.githubbrowser.MainApplication
 import com.orhanobut.logger.Logger
 import kotlinx.coroutines.*
 import retrofit2.Call
@@ -132,19 +133,24 @@ class DataFetcher<RequestType,ResultType>
     fun loadData(){
         CoroutineScope(Dispatchers.IO).launch(newSingleThreadContext("loadData")){
             localBlock?.let {
-                setValue(Resource.loading(null))
+                //setValue(Resource.loading(null))
                 val localResult = CoroutineScope(Dispatchers.IO).async {
                     return@async it()
                 }.await()
                 setValue(Resource.success(localResult))
             }
 
-            remoteBlock?.let {
-                result.postValue(Resource.loading(null))
-                Coroutines.ioThenMain({call2ApiResponse(it())}){
-                    notify(it)
-                    this@DataFetcher.setValue(it.toResource())
+            if(MainApplication.Instance?.isNetworkAvailable() ?: false)
+            {
+                remoteBlock?.let {
+                    result.postValue(Resource.loading(null))
+                    Coroutines.ioThenMain({call2ApiResponse(it())}){
+                        notify(it)
+                        this@DataFetcher.setValue(it.toResource())
+                    }
                 }
+            }else{
+                setValue(Resource.err("No Network,please enable Wifi or Mobile data"))
             }
         }
     }

@@ -1,8 +1,10 @@
 package com.github.rwsbillyang.githubbrowser
 
-import com.github.rwsbillyang.appbase.net.NetConfiguration
+import com.github.rwsbillyang.appbase.net.DefaultConfiguration
 
-class GithubConfiguration: NetConfiguration {
+class GithubConfiguration: DefaultConfiguration() {
+    //override fun cetrificatesInputStreamList(): List<InputStream>? = null
+
     companion object {
         const val CONNECT_TIME_OUT: Long = 20 * 1000L
         const val READ_TIME_OUT: Long = 180 * 1000L

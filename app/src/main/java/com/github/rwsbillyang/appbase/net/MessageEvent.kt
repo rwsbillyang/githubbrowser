@@ -12,5 +12,7 @@ enum class EventType{
     TYPE_RESULT_ERR
 
 }
-
+/**
+ * @Deprecated
+ * */
 data class MessageEvent(var type: EventType, var code: Int? = null, var ret: String? = null, var msg: String? = null)
