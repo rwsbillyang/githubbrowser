@@ -127,13 +127,13 @@ class SearchFragment : LoadingFragment() {
         renderLoading(result)
 
         val noResult = result?.status == Status.OK && result.data?.size == 0
+        no_results_text.setVisible(noResult)
         if(noResult)
         {
             no_results_text.text = resources.getString(
                 R.string.empty_search_result,
                 searchViewModel.query.value
             )
-            no_results_text.setVisible(noResult)
             toast(no_results_text.text,3,ToastType.NORMAL)
         }
         if(result.status == Status.LOADING){
