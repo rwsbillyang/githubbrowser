@@ -36,10 +36,10 @@ import com.github.rwsbillyang.appbase.apiresponse.Resource
 import com.github.rwsbillyang.appbase.util.autoCleared
 import com.github.rwsbillyang.appbase.util.loadImg
 import com.github.rwsbillyang.appbase.util.setVisible
+import com.github.rwsbillyang.appbase.view.LoadingFragment
 import com.github.rwsbillyang.githubbrowser.R
 import com.github.rwsbillyang.githubbrowser.model.vo.Repo
 import com.github.rwsbillyang.githubbrowser.model.vo.User
-import com.github.rwsbillyang.githubbrowser.ui.base.LoadingFragment
 import kotlinx.android.synthetic.main.github_user_fragment.*
 import org.koin.androidx.viewmodel.ext.android.viewModel
 

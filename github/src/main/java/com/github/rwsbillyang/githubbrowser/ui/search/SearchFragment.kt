@@ -35,9 +35,9 @@ import com.github.rwsbillyang.appbase.util.ToastType
 import com.github.rwsbillyang.appbase.util.autoCleared
 import com.github.rwsbillyang.appbase.util.setVisible
 import com.github.rwsbillyang.appbase.util.toast
+import com.github.rwsbillyang.appbase.view.LoadingFragment
 import com.github.rwsbillyang.githubbrowser.R
 import com.github.rwsbillyang.githubbrowser.model.vo.Repo
-import com.github.rwsbillyang.githubbrowser.ui.base.LoadingFragment
 import com.github.rwsbillyang.githubbrowser.ui.user.RepoListAdapter
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.github_search_fragment.*

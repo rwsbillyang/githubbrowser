@@ -1,1 +1,3 @@
-include ':github', ':appbase'
+include ':github'
+//include ':AppBaseLib'
+//project(':AppBaseLib').projectDir = new File('/Users/bill/git/AppBaseLib')

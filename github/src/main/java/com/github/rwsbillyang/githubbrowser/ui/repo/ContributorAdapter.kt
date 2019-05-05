@@ -19,22 +19,23 @@ package com.github.rwsbillyang.githubbrowser.ui.repo
 import android.view.View
 import android.widget.ImageView
 import com.github.rwsbillyang.appbase.util.loadImg
-import com.github.rwsbillyang.appbase.view.BaseListAdapter
+import com.github.rwsbillyang.appbase.view.BaseRecyclerViewAdapter
+
 import com.github.rwsbillyang.githubbrowser.R
 import com.github.rwsbillyang.githubbrowser.model.vo.Contributor
 import kotlinx.android.extensions.LayoutContainer
 import kotlinx.android.synthetic.main.github_contributor_item.*
 import kotlinx.android.synthetic.main.github_contributor_item.view.*
 
-class ContributorAdapter(private val callback: ((Contributor, ImageView) -> Unit)?): BaseListAdapter<Contributor>() {
+class ContributorAdapter(private val callback: ((Contributor, ImageView) -> Unit)?): BaseRecyclerViewAdapter<Contributor>() {
     override fun getItemLayout(): Int = R.layout.github_contributor_item
 
-    override fun createViewHolder(itemView: View): BaseViewHolder<Contributor>
+    override fun createViewHolder(itemView: View): BaseRecyclerViewAdapter.BaseViewHolder<Contributor>
             = ContributorViewHolder(itemView,callback)
 
         //https://kotlinlang.org/docs/tutorials/android-plugin.html
         class ContributorViewHolder(override val containerView: View,private val callback: ((Contributor, ImageView) -> Unit)?):
-            BaseListAdapter.BaseViewHolder<Contributor>(containerView), LayoutContainer {
+            BaseRecyclerViewAdapter.BaseViewHolder<Contributor>(containerView), LayoutContainer {
 
             // private val imageView = itemView.findViewById<ImageView>(R.id.imageView)
             // private val textView = itemView.findViewById<TextView>(R.id.textView)
